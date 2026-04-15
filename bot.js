@@ -45,4 +45,4 @@ app.post('/webhook', async (req, res) => {
   } catch (err) { console.error(err.message); }
 });
 
-app.listen(3001, () => console.log('Bot WhatsApp corriendo en puerto 3001'));
+app.listen(process.env.PORT || 3001, () => console.log('Bot WhatsApp corriendo en puerto 3001'));
