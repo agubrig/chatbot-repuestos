@@ -5,10 +5,10 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 
-const ACCOUNT_SID = 'AC294b8885ce991c9f483f44490fa55e2a';
-const AUTH_TOKEN = '5605a98591dc2b05f4e685f4e0fc8488';
-const FLOWISE_URL = 'https://flowise-production-5e8c.up.railway.app/api/v1/prediction/9f284790-d526-40d0-a130-0cbb28b68652';
-const OWNER_WHATSAPP = 'whatsapp:+59899046252';
+const ACCOUNT_SID = process.env.TWILIO_SID;
+const AUTH_TOKEN = process.env.TWILIO_TOKEN;
+const FLOWISE_URL = process.env.FLOWISE_URL;
+const OWNER_WHATSAPP = process.env.OWNER_WHATSAPP;
 const client = twilio(ACCOUNT_SID, AUTH_TOKEN);
 
 app.post('/webhook', async (req, res) => {
@@ -23,10 +23,7 @@ app.post('/webhook', async (req, res) => {
     const clientId = parts[1];
     const respuesta = parts.slice(2).join(' ');
     try {
-      const r = await axios.post(FLOWISE_URL, {
-        question: 'El vendedor confirmo: ' + respuesta + '. Continua la conversacion con el cliente.',
-        overrideConfig: { sessionId: clientId }
-      });
+      const r = await axios.post(FLOWISE_URL, { question: 'El vendedor confirmo: ' + respuesta + '. Continua la conversacion con el cliente.', overrideConfig: { sessionId: clientId } });
       await client.messages.create({ from: 'whatsapp:+14155238886', to: 'whatsapp:+' + clientId, body: r.data.text });
       await client.messages.create({ from: 'whatsapp:+14155238886', to: OWNER_WHATSAPP, body: 'Respuesta enviada al cliente ' + clientId });
     } catch (err) { console.error(err.message); }
