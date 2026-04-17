@@ -10,11 +10,16 @@ const FLOWISE_URL = process.env.FLOWISE_URL;
 const OWNER = process.env.OWNER_WHATSAPP;
 const FROM_NUM = 'whatsapp:+14155238886';
 
+console.log('OWNER configurado:', OWNER);
+
 app.post('/webhook', async (req, res) => {
   res.set('Content-Type', 'text/xml');
   res.send('<Response></Response>');
   const from = req.body.From;
   const text = req.body.Body;
+  console.log('FROM recibido:', from);
+  console.log('OWNER es:', OWNER);
+  console.log('Son iguales:', from === OWNER);
   if (!from || !text) return;
   const sessionId = from.replace('whatsapp:+','');
 
