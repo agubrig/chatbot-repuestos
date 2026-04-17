@@ -10,17 +10,23 @@ const FLOWISE_URL = process.env.FLOWISE_URL;
 const OWNER = process.env.OWNER_WHATSAPP;
 const FROM_NUM = 'whatsapp:+14155238886';
 
-console.log('OWNER configurado:', OWNER);
+console.log('Bot iniciado. OWNER:', OWNER);
 
 app.post('/webhook', async (req, res) => {
-  res.set('Content-Type', 'text/xml');
-  res.send('<Response></Response>');
   const from = req.body.From;
   const text = req.body.Body;
-  console.log('FROM recibido:', from);
-  console.log('OWNER es:', OWNER);
-  console.log('Son iguales:', from === OWNER);
-  if (!from || !text) return;
+  console.log('Mensaje recibido - From:', from, 'Text:', text);
+  console.log('OWNER:', OWNER);
+  console.log('Match:', from === OWNER);
+  
+  res.set('Content-Type', 'text/xml');
+  res.send('<Response></Response>');
+  
+  if (!from || !text) {
+    console.log('Sin from o text, saliendo');
+    return;
+  }
+  
   const sessionId = from.replace('whatsapp:+','');
 
   if (from === OWNER && text.startsWith('RESP ')) {
@@ -34,13 +40,15 @@ app.post('/webhook', async (req, res) => {
       });
       await client.messages.create({ from: FROM_NUM, to: 'whatsapp:+' + clientId, body: r.data.text });
       await client.messages.create({ from: FROM_NUM, to: OWNER, body: 'Respuesta enviada al cliente ' + clientId });
-    } catch(e) { console.error(e.message); }
+    } catch(e) { console.error('Error RESP:', e.message); }
     return;
   }
 
   try {
+    console.log('Enviando a Flowise...');
     const response = await axios.post(FLOWISE_URL, { question: text, overrideConfig: { sessionId } });
     const reply = response.data.text;
+    console.log('Respuesta Flowise:', reply);
     const lines = reply.split('\n');
     const cleanReply = lines.filter(l =>
       !l.includes('CONSULTA_VENDEDOR:') &&
@@ -72,7 +80,7 @@ app.post('/webhook', async (req, res) => {
         body: 'PEDIDO CONFIRMADO:\n' + pedidoLine.replace('PEDIDO_CONFIRMADO:','').trim()
       });
     }
-  } catch(e) { console.error(e.message); }
+  } catch(e) { console.error('Error general:', e.message); }
 });
 
 app.listen(process.env.PORT || 3001, () => console.log('Bot corriendo'));
